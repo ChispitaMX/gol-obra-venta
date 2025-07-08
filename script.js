@@ -1,5 +1,5 @@
 import { Connection, PublicKey, Transaction } from "https://esm.sh/@solana/web3.js?bundle";
-// ——> Exponer Transaction para la consola:
+// Exponer Transaction para la consola
 window.Transaction = Transaction;
 
 const RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
@@ -9,58 +9,50 @@ const RAYDIUM_PROGRAM_ID = new PublicKey("9WwWcMha7rTq6VpCTvZdUehzQWiygkgzarWVWq
 
 let connection, provider, userPubkey;
 
-window.addEventListener("load", async () => {
-  // Detectar Phantom
+const connectBtn = document.getElementById("connect-button");
+const statusEl = document.getElementById("wallet-status");
+const usdtInput = document.getElementById("usdt-amount");
+const obragoSpan = document.getElementById("obragol-amount");
+const buyBtn = document.getElementById("buy-button");
+
+// Conectar Phantom
+connectBtn.addEventListener("click", async () => {
   if (window.solana && window.solana.isPhantom) {
     provider = window.solana;
     await provider.connect();
     userPubkey = provider.publicKey;
     connection = new Connection(RPC_ENDPOINT, "confirmed");
-    document.getElementById("wallet-status")
-      .textContent = `Wallet conectada: ${userPubkey.toString()}`;
-    document.getElementById("wallet-status")
-      .classList.add("connected");
+    statusEl.textContent = `Wallet conectada: ${userPubkey.toString()}`;
+    statusEl.classList.remove("disconnected");
+    statusEl.classList.add("connected");
+    buyBtn.disabled = false;
   } else {
-    const status = document.getElementById("wallet-status");
-    status.textContent = "Wallet Phantom no encontrada";
-    status.classList.add("disconnected");
-    document.getElementById("buy-button").disabled = true;
-    return;
+    statusEl.textContent = "Wallet Phantom no encontrada";
+    statusEl.classList.remove("connected");
+    statusEl.classList.add("disconnected");
+    buyBtn.disabled = true;
   }
-
-  // Actualizar cálculo
-  const inp = document.getElementById("usdt-amount");
-  const out = document.getElementById("obragol-amount");
-  inp.addEventListener("input", () => {
-    const usdt = +inp.value;
-    out.textContent = (usdt * 1000).toLocaleString("es");
-  });
 });
 
-document.getElementById("buy-button").addEventListener("click", async () => {
+// Calcular OBRAGOL a recibir
+usdtInput.addEventListener("input", () => {
+  const usdt = +usdtInput.value || 0;
+  obragoSpan.textContent = (usdt * 1000).toLocaleString("es");
+});
+
+// Comprar OBRAGOL
+buyBtn.addEventListener("click", async () => {
   try {
-    const usdtAmount = +document.getElementById("usdt-amount").value;
-    const obragolAmount = usdtAmount * 1000;
-
-    // Construir transacción Raydium
+    const usdtAmount = +usdtInput.value;
+    if (usdtAmount <= 0) throw new Error("Ingresa un monto mayor a 0");
     const transaction = new Transaction();
-    // Aquí irían las instrucciones reales de intercambio en Raydium.
-    // Ejemplo placeholder:
-    // transaction.add(
-    //   Raydium.makeSwapInstruction({
-    //     // params...
-    //   })
-    // );
-
+    // Aquí irían las instrucciones reales de intercambio en Raydium
     transaction.feePayer = userPubkey;
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
-
-    // Firmar y enviar
     const signedTx = await provider.signTransaction(transaction);
     const txId = await connection.sendRawTransaction(signedTx.serialize());
     await connection.confirmTransaction(txId, "confirmed");
-
     alert("✅ ¡Compra enviada! TxID: " + txId);
   } catch (err) {
     console.error(err);

@@ -7,16 +7,16 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <h1>¡Bienvenido a Obragol-Venta!</h1>
-  <div id="wallet-status" class="status">Wallet no conectada</div>
+  <h1>¡Gracias por ser parte de la Criptomoneda más fuerte de México!</h1>
+  <button id="connect-button">Conectar Wallet</button>
+  <div id="wallet-status" class="status disconnected">Wallet no conectada</div>
 
-  <label for="usdt-amount">USDT a invertir:</label>
-  <input id="usdt-amount" type="number" min="1" value="5"/>
+  <label for="usdt-amount">Cantidad USDT</label>
+  <input id="usdt-amount" type="number" min="1" value="0"/>
 
-  <div id="you-get">Recibirás: <span id="obragol-amount">5000</span> OBRAGOL</div>
+  <div>Recibirás: <span id="obragol-amount">0</span> OBRAGOL</div>
+  <button id="buy-button" disabled>Comprar OBRAGOL Token</button>
 
-  <button id="buy-button">Comprar OBRAGOL Token</button>
-
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
