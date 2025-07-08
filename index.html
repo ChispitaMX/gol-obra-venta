@@ -1,27 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Contador OBRAGOL</title>
-    <link rel="stylesheet" href="style.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Comprar OBRAGOL Token</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <div class="container">
-        <h1>¡Gracias por ser parte de la Criptomoneda más fuerte de México!</h1>
-        <p id="countdown"></p>
-        <button id="connectWallet">Conectar Wallet</button>
-        <input type="number" id="usdtAmount" placeholder="Cantidad USDT">
-        <p>Recibirás: <span id="obragolAmount">0</span> OBRAGOL</p>
-        <button id="buyButton">Comprar OBRAGOL Token</button>
-    </div>
+  <h1>¡Bienvenido a Obragol-Venta!</h1>
+  <div id="wallet-status" class="status">Wallet no conectada</div>
 
-    <script src="script.js" type="module"></script>
-    <script>
-        // Aviso de compatibilidad con Phantom y Solflare
-        if (!window.solana?.isPhantom && !window.solflare) {
-            alert("Para usar esta página necesitas Phantom o Solflare Wallet instaladas.");
-        }
-    </script>
+  <label for="usdt-amount">USDT a invertir:</label>
+  <input id="usdt-amount" type="number" min="1" value="5"/>
+
+  <div id="you-get">Recibirás: <span id="obragol-amount">5000</span> OBRAGOL</div>
+
+  <button id="buy-button">Comprar OBRAGOL Token</button>
+
+  <script src="script.js"></script>
 </body>
 </html>
