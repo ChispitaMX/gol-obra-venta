@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Comprar OBRAGOL Token</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8">
+  <title>Contador OBRAGOL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>¡Gracias por ser parte de la Criptomoneda más fuerte de México!</h1>
-  <button id="connect-button">Conectar Wallet</button>
-  <div id="wallet-status" class="status disconnected">Wallet no conectada</div>
-
-  <label for="usdt-amount">Cantidad USDT</label>
-  <input id="usdt-amount" type="number" min="1" value="0"/>
-
-  <div>Recibirás: <span id="obragol-amount">0</span> OBRAGOL</div>
-  <button id="buy-button" disabled>Comprar OBRAGOL Token</button>
-
-  <script type="module" src="script.js"></script>
+  <div class="container">
+    <h1>¡Gracias por ser parte de la Criptomoneda más fuerte de México!</h1>
+    <button id="connectWallet">Conectar Wallet</button>
+    <input type="number" id="usdtAmount" placeholder="Cantidad USDT">
+    <p>Recibirás: <span id="obragolAmount">0</span> OBRAGOL</p>
+    <button id="buyButton">Comprar OBRAGOL Token</button>
+  </div>
+  <script src="script.js" type="module"></script>
+  <script>
+    if (!window.solana?.isPhantom && !window.solflare) {
+      alert("Para usar esta página necesitas Phantom o Solflare Wallet.");
+    }
+  </script>
 </body>
 </html>

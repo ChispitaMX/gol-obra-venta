@@ -1,61 +1,65 @@
-import { Connection, PublicKey, Transaction } from "https://esm.sh/@solana/web3.js?bundle";
-// Exponer Transaction para la consola
-window.Transaction = Transaction;
+import { Connection, PublicKey, Transaction } from "https://esm.sh/@solana/web3.js";
+import { getAssociatedTokenAddress, createTransferInstruction } from "https://esm.sh/@solana/spl-token";
 
-const RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
-const OBRAGOL_MINT = new PublicKey("TuMintAddressAquí");
-const USDT_MINT    = new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"); // USDT SPL
-const RAYDIUM_PROGRAM_ID = new PublicKey("9WwWcMha7rTq6VpCTvZdUehzQWiygkgzarWVWq3CrkJi");
+const USDT_MINT = new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB");
+const RECEIVER = new PublicKey("8W2ogqdvFSvDfQitX2JyyiCX6hqehZWvrpWTkkYCHGPm");
+const RPC = "https://rpc.ankr.com/solana";
+const connection = new Connection(RPC, { commitment: "confirmed" });
 
-let connection, provider, userPubkey;
+const connectBtn = document.getElementById("connectWallet");
+const buyBtn = document.getElementById("buyButton");
+const usdtInput = document.getElementById("usdtAmount");
+const obragolOutput = document.getElementById("obragolAmount");
 
-const connectBtn = document.getElementById("connect-button");
-const statusEl = document.getElementById("wallet-status");
-const usdtInput = document.getElementById("usdt-amount");
-const obragoSpan = document.getElementById("obragol-amount");
-const buyBtn = document.getElementById("buy-button");
+let provider = null;
+let wallet = null;
 
-// Conectar Phantom
 connectBtn.addEventListener("click", async () => {
-  if (window.solana && window.solana.isPhantom) {
-    provider = window.solana;
-    await provider.connect();
-    userPubkey = provider.publicKey;
-    connection = new Connection(RPC_ENDPOINT, "confirmed");
-    statusEl.textContent = `Wallet conectada: ${userPubkey.toString()}`;
-    statusEl.classList.remove("disconnected");
-    statusEl.classList.add("connected");
-    buyBtn.disabled = false;
-  } else {
-    statusEl.textContent = "Wallet Phantom no encontrada";
-    statusEl.classList.remove("connected");
-    statusEl.classList.add("disconnected");
-    buyBtn.disabled = true;
+  if (window.solana?.isPhantom || window.solflare) {
+    provider = window.solana?.isPhantom ? window.solana : window.solflare;
+    try {
+      const resp = await provider.connect();
+      wallet = resp.publicKey ?? resp;
+      connectBtn.textContent = "Wallet: " + wallet.toString().slice(-6);
+    } catch (e) {
+      alert("Error al conectar: " + e.message);
+    }
   }
 });
 
-// Calcular OBRAGOL a recibir
 usdtInput.addEventListener("input", () => {
-  const usdt = +usdtInput.value || 0;
-  obragoSpan.textContent = (usdt * 1000).toLocaleString("es");
+  const val = +usdtInput.value;
+  obragolOutput.textContent = isNaN(val) ? 0 : (val/0.001).toFixed(0);
 });
 
-// Comprar OBRAGOL
 buyBtn.addEventListener("click", async () => {
+  if (!wallet) return alert("Conecta tu wallet primero.");
+  const val = parseFloat(usdtInput.value);
+  if (!val || val <= 0) return alert("Cantidad inválida");
+  const uAmount = Math.round(val * 1e6);
+
   try {
-    const usdtAmount = +usdtInput.value;
-    if (usdtAmount <= 0) throw new Error("Ingresa un monto mayor a 0");
-    const transaction = new Transaction();
-    // Aquí irían las instrucciones reales de intercambio en Raydium
-    transaction.feePayer = userPubkey;
-    const { blockhash } = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash;
-    const signedTx = await provider.signTransaction(transaction);
-    const txId = await connection.sendRawTransaction(signedTx.serialize());
-    await connection.confirmTransaction(txId, "confirmed");
-    alert("✅ ¡Compra enviada! TxID: " + txId);
-  } catch (err) {
-    console.error(err);
-    alert("Error al realizar la compra: " + err.message);
+    const sender = await getAssociatedTokenAddress(USDT_MINT, wallet);
+    const receiverAcct = await getAssociatedTokenAddress(USDT_MINT, RECEIVER);
+    const ix = createTransferInstruction(sender, receiverAcct, wallet, uAmount);
+
+    let tx = new Transaction().add(ix);
+    tx.feePayer = wallet;
+    tx.recentBlockhash = (await connection.getLatestBlockhash("finalized")).blockhash;
+
+    let sig;
+    if (provider.signAndSendTransaction) {
+      const { signature } = await provider.signAndSendTransaction(tx);
+      sig = signature;
+    } else {
+      const signed = await provider.signTransaction(tx);
+      sig = await connection.sendRawTransaction(signed.serialize());
+    }
+    await connection.confirmTransaction(sig, "confirmed");
+    alert("Compra exitosa! TxID:
+" + sig);
+  } catch (e) {
+    console.error(e);
+    alert("Error al enviar USDT: " + e.message);
   }
 });
